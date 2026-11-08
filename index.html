@@ -150,7 +150,11 @@ button,input,select{font:inherit;color:inherit}
 .layers label:has(input:checked){background:rgba(245,192,74,.16);border-color:#f5c04a}
 .status{font-size:15px;color:var(--night-muted);min-height:1.5em}
 .bigcue{font-family:Fraunces,serif;font-size:clamp(28px,5vw,46px);font-weight:800;color:#f5c04a;min-height:1.2em}
-.prog{height:8px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden}
+.prog{height:14px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;cursor:pointer}
+.stage .nav{gap:10px}
+.ctrl{width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:transparent;color:var(--cream);cursor:pointer;display:grid;place-items:center;flex:none}
+.ctrl:hover{background:rgba(255,255,255,.1)}
+.ctrl svg{width:20px;height:20px}
 .prog i{display:block;height:100%;width:0;background:#f5c04a;border-radius:99px}
 
 /* cuadrícula de ritmo */
@@ -605,9 +609,9 @@ const RT = Object.assign({ tempo: 120, on: { bombo: true, cuerpo: true, chajchas
 const saveSong = () => store.set('song', ST), saveRitmo = () => store.set('ritmo', RT);
 const stepDur = bpm => 60 / bpm / 2; // corchea = bpm; dos semicorcheas por corchea
 
-function startProg(prog) {
+function startProg(prog, from = 0) {
   audio(); stopAll();
-  Eng.prog = prog; Eng.playing = true; Eng.endAt = 0; Eng.bar = -(prog.countIn || 0); Eng.step = 0;
+  Eng.prog = prog; Eng.playing = true; Eng.endAt = 0; Eng.ci = prog.countIn || 0; Eng.bar = from; Eng.step = 0;
   Eng.next = ctx.currentTime + 0.12; Eng.queue = [];
   Eng.timer = setInterval(tick, 25); tick();
   prog.onStart && prog.onStart();
@@ -622,11 +626,15 @@ function tick() {
   const p = Eng.prog; if (!p) return;
   const sd = stepDur(p.tempo());
   while (Eng.playing && !Eng.endAt && Eng.next < ctx.currentTime + 0.12) {
-    if (Eng.bar < 0) { if (Eng.step % 2 === 0) V.click(Eng.next, Eng.bar === -1 && Eng.step === 2 ? 'cue' : 'beat'); }
+    if (Eng.ci > 0) { if (Eng.step % 2 === 0) V.click(Eng.next, Eng.ci === 1 && Eng.step === 2 ? 'cue' : 'beat'); }
     else p.sound(Eng.bar, Eng.step, Eng.next, sd);
-    Eng.queue.push({ t: Eng.next, bar: Eng.bar, step: Eng.step });
+    Eng.queue.push({ t: Eng.next, bar: Eng.ci > 0 ? -Eng.ci : Eng.bar, step: Eng.step });
     Eng.next += sd; Eng.step++;
-    if (Eng.step >= 4) { Eng.step = 0; Eng.bar++; if (p.loop && Eng.bar >= p.loop) Eng.bar = 0; if (!p.loop && Eng.bar >= p.length) Eng.endAt = Eng.next + 1.4; }
+    if (Eng.step >= 4) {
+      Eng.step = 0;
+      if (Eng.ci > 0) Eng.ci--;
+      else { Eng.bar++; if (p.loop && Eng.bar >= p.loop) Eng.bar = 0; if (!p.loop && Eng.bar >= p.length) Eng.endAt = Eng.next + 1.4; }
+    }
   }
   if (Eng.endAt && ctx.currentTime > Eng.endAt) stopAll();
 }
@@ -760,6 +768,7 @@ function songPlayer(root, opts) {
   const btn = playButton(() => (Eng.playing && Eng.prog === prog ? stopAll() : (F = buildForm(ST.vueltas), startProg(prog))));
   const status = h('p', { class: 'status', 'aria-live': 'polite' });
   const bar = h('i');
+  let cur = 0;
   const prog = {
     countIn: opts.countIn ?? 1, tempo: () => ST.tempo,
     get length() { return F.bars.length; },
@@ -777,6 +786,7 @@ function songPlayer(root, opts) {
     paint(b, step) {
       if (b < 0) { status.textContent = 'Cuenta: prepárate…'; opts.cue && opts.cue(b, step); return; }
       const info = F.bars[b]; if (!info) return;
+      cur = b;
       const n = F.notes.get(b * 4 + step);
       bar.style.width = ((b * 4 + step + 1) / (F.bars.length * 4) * 100).toFixed(1) + '%';
       status.textContent = `${info.label}${info.vuelta === 1 && info.sec === 'canto' ? ' · segunda vuelta' : ''} · compás ${b + 1} de ${F.bars.length}`;
@@ -793,11 +803,33 @@ function songPlayer(root, opts) {
   }));
   const toggles = layerToggles(ST, [['melodia', 'Melodía guía'], ['acordes', 'Acordes'], ['bombo', 'Bombo'], ['chajchas', 'Chajchas'], ['clic', 'Clic']], () => { saveSong(); syncAll(); });
   const dur = h('span', { class: 'small muted' });
+  // bloques: introducción, cada frase, interludio y final
+  const same = (a, b) => a && b && a.sec === b.sec && a.line === b.line && a.vuelta === b.vuelta;
+  const blockStart = b => { b = Math.max(0, Math.min(b, F.bars.length - 1)); while (b > 0 && same(F.bars[b - 1], F.bars[b])) b--; return b; };
+  const blockEnd = b => { while (b < F.bars.length - 1 && same(F.bars[b + 1], F.bars[b])) b++; return b; };
+  const playFrom = b => { if (b >= F.bars.length) b = blockStart(F.bars.length - 1); cur = b; startProg(prog, b); };
+  const prevBlock = () => { let s0 = blockStart(cur); if (Eng.playing && Eng.prog === prog && cur - s0 < 2 && s0 > 0) s0 = blockStart(s0 - 1); playFrom(s0); };
+  const nextBlock = () => playFrom(blockEnd(cur) + 1);
+  const ctrl = (html, label, fn) => h('button', { class: 'ctrl', type: 'button', html, 'aria-label': label, title: label, onclick: fn });
+  const ICO_PREV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z" fill="currentColor"/></svg>';
+  const ICO_NEXT = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5v14l11-7z" fill="currentColor"/></svg>';
+  const jumps = h('div', { class: 'seg', role: 'group', 'aria-label': 'Empezar desde' });
+  const buildJumps = () => {
+    jumps.textContent = '';
+    const first = (line, v) => F.bars.findIndex(x => x.sec === 'canto' && x.line === line && x.vuelta === v);
+    const marks = [['Inicio', 0], ['A', first(0, 0)], ['B', first(2, 0)], ['C', first(4, 0)], ['D', first(6, 0)]];
+    if (ST.vueltas > 1) marks.push(['2.ª vuelta', first(0, 1)]);
+    for (const [t, b] of marks) jumps.append(h('button', { type: 'button', text: t, 'aria-label': t === 'Inicio' ? 'Empezar desde el inicio' : t === '2.ª vuelta' ? 'Empezar desde la 2.ª vuelta' : 'Empezar desde la frase ' + t, onclick: () => playFrom(b) }));
+  };
+  const progBox = h('div', { class: 'prog', title: 'Toca la barra para saltar a esa parte' }, bar);
+  progBox.addEventListener('click', e => { const r = progBox.getBoundingClientRect(); playFrom(blockStart(Math.floor((e.clientX - r.left) / r.width * F.bars.length))); });
   const sync = () => {
     $$('button', tono).forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.v === ST.tono)));
     $$('button', vueltas).forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.v === ST.vueltas)));
     toggles.sync(); $('input[type=range]', root).value = ST.tempo; $('output', root).textContent = `♪ = ${ST.tempo}`;
     dur.textContent = `Duración: ${fmt(buildForm(ST.vueltas).bars.length * 4 * stepDur(ST.tempo))}`;
+    if (!Eng.playing || Eng.prog !== prog) F = buildForm(ST.vueltas);
+    buildJumps();
   };
   players.push(sync);
   root.append(
@@ -805,7 +837,8 @@ function songPlayer(root, opts) {
     h('div', { class: 'row' }, [btn, tempoControl('t-' + root.id, ST, 100, 184, () => { saveSong(); syncAll(); }, 'Meta: ♪ = 160')]),
     h('div', { class: 'row' }, [tono, vueltas, dur]),
     h('div', {}, [h('p', { class: 'small muted', style: 'margin:0 0 8px', text: 'Sonidos que se escuchan:' }), toggles]),
-    h('div', { class: 'prog' }, bar), status,
+    h('div', { class: 'row nav' }, [ctrl(ICO_PREV, 'Frase anterior', prevBlock), ctrl(ICO_NEXT, 'Frase siguiente', nextBlock), h('span', { class: 'small muted', text: 'Empezar desde:' }), jumps]),
+    progBox, status,
   );
   sync();
   return { prog, status, start: () => { F = buildForm(ST.vueltas); startProg(prog); } };
