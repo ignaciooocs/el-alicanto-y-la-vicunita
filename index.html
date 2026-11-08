@@ -1039,15 +1039,28 @@ for (const s of SEGMENTS) {
   $('#tp-jump').append(h('option', { value: s.id, text: `${fmt(s.from)} ${s.part}` }));
 }
 const tpApply = () => { tpText.style.fontSize = tpSize + 'px'; $('#tp-speed').textContent = 'vel. ' + tpSpeed; $('#tp-play').textContent = tpRun ? 'Pausa' : 'Iniciar'; };
-const tpLoop = ts => { if (!tpRun) return; const dt = tpLast ? (ts - tpLast) / 1000 : 0; tpLast = ts; tpText.scrollTop += dt * tpSpeed * 14; requestAnimationFrame(tpLoop); };
-const tpGo = id => { const el = $('#tp-' + id); if (el) tpText.scrollTop = el.offsetTop - tpText.clientHeight * 0.36; $('#tp-jump').value = id; };
+/* En el celular el navegador redondea scrollTop a píxeles enteros: sumar ~0,5 px por cuadro no avanzaba nunca.
+   tpPos guarda la posición exacta (con decimales) y manda sobre el scroll. */
+let tpPos = 0, tpTouch = false;
+const tpLoop = ts => {
+  if (!tpRun) return;
+  const dt = tpLast ? Math.min((ts - tpLast) / 1000, 0.1) : 0; tpLast = ts;
+  if (tpTouch || Math.abs(tpText.scrollTop - tpPos) > 4) tpPos = tpText.scrollTop; // se movió el texto con el dedo: seguir desde ahí
+  else { tpPos += dt * tpSpeed * 14; tpText.scrollTop = tpPos; }
+  if (tpText.scrollTop >= tpText.scrollHeight - tpText.clientHeight - 1) { tpRun = false; tpApply(); return; } // fin del guion
+  requestAnimationFrame(tpLoop);
+};
+tpText.addEventListener('touchstart', () => { tpTouch = true; }, { passive: true });
+tpText.addEventListener('touchend', () => { tpTouch = false; tpPos = tpText.scrollTop; }, { passive: true });
+tpText.addEventListener('touchcancel', () => { tpTouch = false; tpPos = tpText.scrollTop; }, { passive: true });
+const tpGo = id => { const el = $('#tp-' + id); if (el) { tpText.scrollTop = el.offsetTop - tpText.clientHeight * 0.36; tpPos = tpText.scrollTop; } $('#tp-jump').value = id; };
 async function openTP(id) {
   tpFrom = document.activeElement; tp.hidden = false; tpApply(); tpGo(id || SEGMENTS[0].id); $('#tp-play').focus();
   try { wake = await navigator.wakeLock?.request('screen'); } catch (e) { wake = null; }
 }
 $('#tp-open').addEventListener('click', () => openTP());
 $('#tp-close').addEventListener('click', () => { tp.hidden = true; tpRun = false; tpApply(); try { wake?.release(); } catch (e) {} (tpFrom || $('#tp-open')).focus(); });
-$('#tp-play').addEventListener('click', () => { tpRun = !tpRun; tpLast = 0; tpApply(); if (tpRun) requestAnimationFrame(tpLoop); });
+$('#tp-play').addEventListener('click', () => { tpRun = !tpRun; tpLast = 0; tpPos = tpText.scrollTop; tpApply(); if (tpRun) requestAnimationFrame(tpLoop); });
 $('#tp-slow').addEventListener('click', () => { tpSpeed = Math.max(1, tpSpeed - 1); store.set('tpSpeed', tpSpeed); tpApply(); });
 $('#tp-fast').addEventListener('click', () => { tpSpeed = Math.min(10, tpSpeed + 1); store.set('tpSpeed', tpSpeed); tpApply(); });
 $('#tp-small').addEventListener('click', () => { tpSize = Math.max(22, tpSize - 6); store.set('tpSize', tpSize); tpApply(); });
