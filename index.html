@@ -126,6 +126,13 @@ button,input,select{font:inherit;color:inherit}
 .fxbtn{min-height:44px;padding:8px 14px;border-radius:999px;border:2px solid var(--line);background:var(--surface2);cursor:pointer;font-weight:700;display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
 .fxbtn svg{width:16px;height:16px}
 @media (max-width:640px){.scene{grid-template-columns:auto 1fr}.scene .fxbtn{grid-column:2;justify-self:start}}
+.sub{font-size:clamp(22px,2.8vw,28px)}
+.como .card{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;align-content:start}
+.como .tag{font-size:13px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em}
+.como h4{font-family:Fraunces,serif;font-size:22px;margin:0}
+.como ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.como .tip{background:var(--surface2);border-radius:12px;padding:10px 12px;font-size:.92em}
+.como .fxbtn{justify-self:start;white-space:normal;text-align:left}
 .roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 .role{border-radius:16px;padding:16px;background:var(--surface2)}
 .role b{font-family:Fraunces,serif;font-size:19px;display:block;margin-bottom:4px}
@@ -294,7 +301,7 @@ footer a{color:var(--muted)}
   <header><p class="kicker">Paso 2 de 7</p><h2 id="t2">El cuento sonoro del Alicanto</h2><p class="muted">Siete escenas cortas. Cada una tiene un efecto sonoro que los niños producen contigo; tócalo aquí para saber cómo debe sonar.</p></header>
   <div class="task"><b>Tu tarea</b><ol><li>Lee el cuento en voz alta dos veces, cambiando la voz en cada personaje.</li><li>Practica cada efecto con tus instrumentos hasta que salga sin mirar.</li></ol></div>
   <div class="roles" style="margin-bottom:18px">
-    <div class="role"><b>Narradora</b><p class="small">Voz media y pausada, sentada junto al palo de lluvia. Mira a los niños y espera sus respuestas.</p></div>
+    <div class="role"><b>Narradora</b><p class="small">Voz media y pausada, sentada con las chajchas a mano. Mira a los niños y espera sus respuestas.</p></div>
     <div class="role"><b>Don Lucho, el minero</b><p class="small">Sombrero y linterna. Voz grave y lenta; camina encorvado y en silencio.</p></div>
     <div class="role"><b>El Alicanto</b><p class="small">Alas doradas. Voz aguda y brillante; brazos abiertos que aletean despacio porque «comió mucho oro».</p></div>
   </div>
@@ -305,7 +312,12 @@ footer a{color:var(--muted)}
 <!-- PASO 3 -->
 <section class="step" id="paso-3" data-title="Ritmo" aria-labelledby="t3" hidden>
   <header><p class="kicker">Paso 3 de 7</p><h2 id="t3">El ritmo del huayno: VI-cu-ña</h2><p class="muted">Una sílaba larga y dos cortas en cada compás. Primero se dice, después se hace con el cuerpo y al final con el bombo; las chajchas marcan el pulso.</p></header>
-  <div class="task"><b>Tu tarea</b><ol><li>Dale play y di «VI-cu-ña» junto al audio.</li><li>Pásalo a muslos (VI) y palmas (cu-ña); luego al bombo: PUM pa-ta.</li><li>Sube el tempo de a poco hasta ♪ = 160.</li></ol></div>
+  <div class="task"><b>Tu tarea</b><ol><li>Lee cómo se hace cada sonido y escúchalo solo.</li><li>Practica con el audio en este orden: voz, voz con cuerpo, bombo y, al final, bombo con las chajchas en la muñeca.</li><li>Sube el tempo de a poco hasta ♪ = 160.</li></ol></div>
+  <h3 class="sub">Cómo se hace cada sonido</h3>
+  <p class="muted" style="margin:6px 0 16px">Solo tocas dos instrumentos: el bombo y las chajchas. El cuerpo y la voz completan el ritmo.</p>
+  <div class="grid como" id="como"></div>
+  <h3 class="sub" style="margin-top:28px">Practica con el audio</h3>
+  <p class="muted" style="margin:6px 0 16px">Apaga el sonido que vas a hacer tú y tócalo junto a los demás.</p>
   <div class="stage" id="ritmo"></div>
   <div class="next"><a class="btn ghost" href="#paso-2">Anterior</a><a class="btn primary" href="#paso-4">Siguiente: la canción</a></div>
 </section>
@@ -551,13 +563,13 @@ const V = {
 };
 /* efectos del cuento */
 const FX = {
-  viento(t) { const f = nz(t, 2.6, 'bandpass', 500, 2.5, 0.5, 0.9); f.frequency.setValueAtTime(400, t); f.frequency.linearRampToValueAtTime(1300, t + 1.4); f.frequency.linearRampToValueAtTime(500, t + 3.2); FX.lluvia(t + 0.3, 2.6, 0.5); },
+  viento(t) { const f = nz(t, 2.6, 'bandpass', 500, 2.5, 0.5, 0.9); f.frequency.setValueAtTime(400, t); f.frequency.linearRampToValueAtTime(1300, t + 1.4); f.frequency.linearRampToValueAtTime(500, t + 3.2); nz(t + 0.2, 2.4, 'bandpass', 3200, 1.2, 0.12, 0.6); },
   lluvia(t, dur = 3, v = 1) { for (let i = 0; i < 160; i++) { const tt = t + Math.pow(Math.random(), 0.8) * dur; nz(tt, 0.012, 'bandpass', 2500 + Math.random() * 5000, 4, 0.12 * v * (1 - (tt - t) / dur * 0.6)); } },
   pasos(t) { [0, 0.9, 1.8, 2.7].forEach((d, i) => { V.bombo(t + d, 0.55); V.muslos(t + d + 0.02, 0.5); }); },
   brillo(t) { const N = [88, 91, 95, 98, 100, 103]; for (let i = 0; i < 14; i++) { const m = N[Math.floor(Math.random() * N.length)]; tone(t + i * 0.13 + Math.random() * 0.05, 'sine', mtof(m), mtof(m), 0.5, 0.06); } for (let i = 0; i < 8; i++) V.chajchas(t + i * 0.24, 0.35); },
   alas(t) { for (let i = 0; i < 6; i++) { const tt = t + i * 0.45; nz(tt, 0.22, 'bandpass', 900, 0.8, 0.35, 0.08); V.chajchas(tt + 0.05, 0.5); } },
   gracias(t) { V.bombo(t + 0.6, 1); },
-  vuelo(t) { [62, 65, 67, 69, 72, 74, 77].forEach((m, i) => V.flute(t + i * 0.16, mtof(m), 0.2, 1)); for (let b = 0; b < 3; b++) { const tb = t + 1.4 + b * 0.75; V.bombo(tb, 1); V.bombo(tb + 0.375, 0.6); V.bombo(tb + 0.56, 0.6); } },
+  vuelo(t) { tone(t, 'sine', 300, 820, 1.3, 0.2, 0.15); tone(t, 'triangle', 300, 820, 1.3, 0.05, 0.15); for (let b = 0; b < 3; b++) { const tb = t + 1.4 + b * 0.75; V.bombo(tb, 1); V.bombo(tb + 0.375, 0.6); V.bombo(tb + 0.56, 0.6); } },
 };
 
 /* ============ datos musicales: «La vicuñita» ============ */
@@ -672,7 +684,7 @@ function layerToggles(obj, items, onChange) {
 
 /* ============ PASO 1: materiales ============ */
 const MAT = [
-  ['Instrumentos', [['Bombo o tambor', 'Si no tienes, un tarro o balde con un globo tenso.'], ['Chajchas de tapitas', 'Las de la semana 4 sirven.'], ['Palo de lluvia', 'Tubo de cartón, clavos o papel aluminio en espiral y arroz.'], ['Flauta dulce', 'Reemplaza a la quena en el llamado del Alicanto.']]],
+  ['Instrumentos', [['Bombo o tambor', 'Si no tienes, un tarro o balde con un globo tenso.'], ['Chajchas de tapitas', 'Las de la semana 4 sirven, con una cinta para amarrarlas a la muñeca o al tobillo.']]],
   ['Vestuario y objetos', [['Alas doradas del Alicanto', 'Cartón con papel dorado y elásticos para los brazos.'], ['Sombrero o casco y linterna', 'Para don Lucho, el minero.'], ['Aguayo o tela de colores', 'Para el inicio y para guiar la hilera.'], ['Pañuelo', 'Para la hilera imaginaria del baile.']]],
   ['Para mostrar', [['Mapa de Chile', 'Impreso o la placa 2 en pantalla.'], ['Agenda visual', 'Cuatro dibujos: mapa, cuento, tambor y vicuña.'], ['Fotos del Norte', 'Desierto, altiplano con vicuñas y un carnaval.']]],
   ['Para grabar', [['Celular con espacio', 'Graba en horizontal y en 1080p.'], ['Trípode o soporte', 'Una pila de libros también sirve.'], ['Audífonos con cable', 'Para escuchar las pistas sin que se graben.']]],
@@ -696,18 +708,43 @@ PLACAS.forEach(([f, t], i) => $('#placas').append(h('a', { href: `placas/${f}.pn
 
 /* ============ PASO 2: cuento ============ */
 const SCENES = [
-  ['Muy al norte de Chile hay un desierto enorme, el desierto de Atacama, donde casi nunca llueve. De día el sol quema y de noche sopla un viento frío…', 'Viento: todos soplan «fffff» y giras despacio el palo de lluvia.', 'viento'],
+  ['Muy al norte de Chile hay un desierto enorme, el desierto de Atacama, donde casi nunca llueve. De día el sol quema y de noche sopla un viento frío…', 'Viento: todos soplan «fffff» y frotan las palmas de las manos.', 'viento'],
   ['Allí vivía don Lucho, un minero que buscaba piedras brillantes dentro de los cerros. Cada noche caminaba despacito con su linterna.', 'Pasos: golpes lentos en los muslos y en el bombo. Pum… pum… pum…', 'pasos'],
   ['Una noche, entre los cerros, apareció una luz dorada. ¡Era el Alicanto! Un pájaro mágico que come oro y plata, y por eso sus alas brillan en la oscuridad.', 'Brillo: chajchas suaves; manos que se abren y se cierran como estrellas.', 'brillo'],
   ['El Alicanto había comido tanto que volaba lento, muy lento… y don Lucho lo siguió sin hacer ruido, hasta una cueva llena de piedras que brillaban.', 'Alas: chajchas y brazos que aletean despacio; «shhh» para caminar en silencio.', 'alas'],
   ['Don Lucho tomó solo unas piedritas, las que necesitaba para su familia, y dijo: «Gracias, Alicanto. Gracias, tierra».', 'Gracias: silencio… y un solo golpe de bombo.', 'gracias'],
-  ['El Alicanto, contento, voló alto, muy alto, hasta el altiplano, donde las vicuñas saltan entre los pastos y la gente celebra el carnaval con bombo y zampoña.', 'Vuelo y carnaval: la flauta sube y el bombo empieza «PUM pa-ta».', 'vuelo'],
+  ['El Alicanto, contento, voló alto, muy alto, hasta el altiplano, donde las vicuñas saltan entre los pastos y la gente celebra el carnaval con bombo y zampoña.', 'Vuelo y carnaval: un «uuu» con la voz que sube, y el bombo empieza «PUM pa-ta».', 'vuelo'],
   ['¿Vamos nosotros también al carnaval de las vicuñas?', 'Paso a la canción y al baile.', null],
 ];
 SCENES.forEach(([text, fx, key], i) => {
   const btn = key ? h('button', { class: 'fxbtn', type: 'button', html: ICON.sound + '<span>Escuchar efecto</span>', 'aria-label': `Escuchar efecto de la escena ${i + 1}`, onclick: () => { audio(); stopAll(); FX[key](ctx.currentTime + 0.05); } }) : null;
   $('#scenes').append(h('div', { class: 'card scene' }, [h('span', { class: 'n', text: String(i + 1) }), h('div', {}, [h('p', { text: text }), h('p', { class: 'fx', text: fx })]), btn]));
 });
+
+/* ============ PASO 3: cómo se hace cada sonido ============ */
+const COMO = [
+  { t: 'Voz', fam: 'Recurso sonoro', steps: ['Di «VI» largo y un poco más fuerte: dura lo mismo que «cu-ña» juntas.', 'Di «cu-ña» corto y liviano, pegadito.', 'Repite sin parar, como si caminaras: VI-cu-ña, VI-cu-ña…'], tip: 'Si te enredas, di solo «VI» en cada pulso y agrega «cu-ña» después.' },
+  { t: 'Cuerpo', fam: 'Percusión corporal', steps: ['Siéntate o párate con las rodillas un poco dobladas.', '«VI»: golpea los muslos con las dos manos planas al mismo tiempo. Suena grave: tum.', '«cu-ña»: dos palmadas rápidas frente al pecho.'], tip: 'Muslos abajo y palmas arriba: así los niños lo ven desde lejos.', demo: 'cuerpo' },
+  { t: 'Bombo', fam: 'Membranófono', steps: ['Pon el bombo o el tarro de lado sobre tu muslo, o en el suelo entre las piernas.', 'Toma el mazo con la mano con que escribes, como un lápiz grueso, sin apretar.', '«PUM»: golpe firme al centro del parche; deja que el mazo rebote.', '«pa-ta»: dos golpes cortos y suaves, más cerca del borde.'], tip: 'El movimiento sale de la muñeca, no del brazo entero.', demo: 'bombo' },
+  { t: 'Chajchas', fam: 'Idiófono', steps: ['Amárralas a la muñeca de la mano del mazo, o tómalas de la cinta.', 'Sacude una vez hacia abajo y frena en seco: así el sonido sale limpio.', 'Solo en el pulso: fuerte en «VI» y suave en «cu». No las agites todo el rato.'], tip: 'Amarradas a la muñeca suenan solas con cada golpe de bombo: dos instrumentos con una sola mano. También puedes amarrarlas al tobillo y marcar el pulso con el pie.', demo: 'chajchas' },
+];
+function demoSonido(k) {
+  audio(); stopAll();
+  const sd = stepDur(RT.tempo); let t = ctx.currentTime + 0.1;
+  for (let b = 0; b < 4; b++) for (let st = 0; st < 4; st++, t += sd) {
+    if (k === 'bombo' && (st === 0 || st >= 2)) V.bombo(t, st === 0 ? 1 : 0.6);
+    if (k === 'cuerpo') { if (st === 0) V.muslos(t, 1); else if (st >= 2) V.palmas(t, 0.8); }
+    if (k === 'chajchas' && st % 2 === 0) V.chajchas(t, st === 0 ? 1 : 0.7);
+  }
+}
+for (const c of COMO) {
+  $('#como').append(h('div', { class: 'card' }, [
+    h('span', { class: 'tag', text: c.fam }), h('h4', { text: c.t }),
+    h('ol', {}, c.steps.map(x => h('li', { text: x }))),
+    h('p', { class: 'tip', text: c.tip }),
+    c.demo ? h('button', { class: 'fxbtn', type: 'button', html: ICON.sound + '<span>Escuchar este sonido</span>', 'aria-label': 'Escuchar este sonido: ' + c.t, onclick: () => demoSonido(c.demo) }) : h('p', { class: 'small muted', text: 'Este lo dices tú: dale play abajo y dilo junto al audio.' }),
+  ]));
+}
 
 /* ============ PASO 3: ritmo ============ */
 (function ritmo() {
@@ -915,7 +952,7 @@ const SEGMENTS = [
   { id: 'pres', from: 0, to: 20, part: 'Presentación', color: '#f5c04a', see: 'A cámara. Placa 1 los primeros segundos.', take: 'Toma 9' },
   { id: 'inicio', from: 20, to: 80, part: 'Inicio', color: '#ffad6b', see: 'Como educadora: saludo con bombo, agenda, mapa (placa 2) y aguayo.', take: 'Toma 6' },
   { id: 'cuento', from: 80, to: 185, part: 'Cuento sonoro', color: '#b197fc', see: 'Narradora, don Lucho y el Alicanto, con los efectos.', take: 'Toma 5' },
-  { id: 'instr', from: 185, to: 235, part: 'Instrumentos', color: '#66d9e8', see: 'Muestras y clasificas cada instrumento (placa 3).', take: 'Toma 7' },
+  { id: 'instr', from: 185, to: 235, part: 'Instrumentos', color: '#66d9e8', see: 'Tocas el bombo y las chajchas y muestras los demás en la placa 3.', take: 'Toma 7' },
   { id: 'ritmo', from: 235, to: 285, part: 'Ritmo', color: '#8ce99a', see: 'VI-cu-ña con la voz, el cuerpo y el bombo (placa 4).', take: 'Toma 4' },
   { id: 'voz', from: 285, to: 335, part: 'Voz', color: '#ffc9c9', see: 'Juegos de voz y enseñanza en eco de A y B (placa 5).', take: 'Toma 8' },
   { id: 'cancion', from: 335, to: 425, part: 'Canción y baile', color: '#f783ac', see: 'Cantas y bailas con tu base de bombo y chajchas.', take: 'Tomas 1 a 3' },
@@ -924,12 +961,12 @@ const SEGMENTS = [
 const SCRIPT = {
   pres: [['', 'Hola, soy Carry Constanza Gutiérrez. Les presento «El Alicanto y la vicuñita», una experiencia artístico-musical para Nivel Transición inspirada en la Zona Norte de Chile. El objetivo es que los niños y niñas interpreten un huayno integrando la voz, el cuerpo, instrumentos y el baile, a partir de un mito del desierto. Hice el trabajo de forma individual, así que asumo todos los roles.']],
   inicio: [['Bombo: PUM pa-ta, PUM pa-ta.', '¡Buenos días, niños y niñas! Hoy nos vamos de viaje. Miren nuestra agenda: primero el mapa, después un cuento, luego el tambor y al final… ¡bailamos con las vicuñas!'], ['Muestra el mapa.', '¿Dónde estará el Norte en nuestro mapa? ¡Muy bien, arriba! Desde Arica hasta Coquimbo está la Zona Norte. Ahí hay un desierto enorme, el desierto de Atacama, donde casi nunca llueve: de día hace mucho calor y de noche, mucho frío. Más arriba, en los cerros altos del altiplano, viven las vicuñas, las llamas y los flamencos.'], ['Muestra el aguayo.', 'Ahí viven pueblos como los aymara, los quechua y los lickanantay, que tejen telas de colores como este aguayo. ¿Lo quieren tocar? Cuando hay carnaval, cantan y bailan con bombo, zampoña y charango.']],
-  cuento: [['Te sientas junto al palo de lluvia.', 'Ahora les voy a contar un cuento, y ustedes me van a ayudar con los sonidos. ¿Listos?'], ['Palo de lluvia. Todos soplan.', 'Muy al norte de Chile hay un desierto enorme, el desierto de Atacama, donde casi nunca llueve. De día el sol quema y de noche sopla un viento frío… ¡Soplemos como el viento! Fffff…'], ['Sombrero y linterna. Voz grave. Bombo lento.', 'Allí vivía don Lucho, un minero que buscaba piedras brillantes dentro de los cerros. Cada noche caminaba despacito con su linterna… pum… pum… pum…'], ['Chajchas suaves.', 'Una noche, entre los cerros, apareció una luz dorada. ¡Era el Alicanto! Un pájaro mágico que come oro y plata, y por eso sus alas brillan en la oscuridad.'], ['Alas doradas. Voz aguda. Aleteo lento.', '«Comí tanto oro que vuelo despacito…» El Alicanto voló lento, muy lento, y don Lucho lo siguió sin hacer ruido… shhh… hasta una cueva llena de piedras que brillaban.'], ['Voz de don Lucho. Un golpe de bombo.', 'Don Lucho tomó solo unas piedritas, las que necesitaba para su familia, y dijo: «Gracias, Alicanto. Gracias, tierra».'], ['Flauta que sube; bombo PUM pa-ta.', 'El Alicanto, contento, voló alto, muy alto, hasta el altiplano, donde las vicuñas saltan entre los pastos y la gente celebra el carnaval. ¿Vamos nosotros también al carnaval de las vicuñas?']],
-  instr: [['Muestra cada instrumento y hazlo sonar.', 'Para el carnaval necesitamos instrumentos. Estas son chajchas: en el Norte se hacen con pezuñas de llama o de cabra; yo las hice con tapitas. Las sacudo y suena todo el instrumento: es un idiófono, igual que el palo de lluvia. El bombo tiene un parche que vibra cuando lo golpeo: es un membranófono. La quena y la zampoña se soplan; vibra el aire dentro del tubo: son aerófonos. Yo uso la flauta dulce en lugar de la quena. Y el charango tiene cuerdas que vibran: es un cordófono. Lo sacudo, lo golpeo, lo soplo y lo rasgueo.']],
+  cuento: [['Te sientas con las chajchas a mano.', 'Ahora les voy a contar un cuento, y ustedes me van a ayudar con los sonidos. ¿Listos?'], ['Soplas y frotas las palmas.', 'Muy al norte de Chile hay un desierto enorme, el desierto de Atacama, donde casi nunca llueve. De día el sol quema y de noche sopla un viento frío… ¡Soplemos como el viento! Fffff…'], ['Sombrero y linterna. Voz grave. Bombo lento.', 'Allí vivía don Lucho, un minero que buscaba piedras brillantes dentro de los cerros. Cada noche caminaba despacito con su linterna… pum… pum… pum…'], ['Chajchas suaves.', 'Una noche, entre los cerros, apareció una luz dorada. ¡Era el Alicanto! Un pájaro mágico que come oro y plata, y por eso sus alas brillan en la oscuridad.'], ['Alas doradas. Voz aguda. Aleteo lento.', '«Comí tanto oro que vuelo despacito…» El Alicanto voló lento, muy lento, y don Lucho lo siguió sin hacer ruido… shhh… hasta una cueva llena de piedras que brillaban.'], ['Voz de don Lucho. Un golpe de bombo.', 'Don Lucho tomó solo unas piedritas, las que necesitaba para su familia, y dijo: «Gracias, Alicanto. Gracias, tierra».'], ['«Uuu» con la voz, que sube; bombo PUM pa-ta.', 'El Alicanto, contento, voló alto, muy alto, hasta el altiplano, donde las vicuñas saltan entre los pastos y la gente celebra el carnaval. ¿Vamos nosotros también al carnaval de las vicuñas?']],
+  instr: [['Toca las chajchas y el bombo; los demás, con la placa 3.', 'Para el carnaval necesitamos instrumentos. Estas son chajchas: en el Norte se hacen con pezuñas de llama o de cabra; yo las hice con tapitas. Las sacudo y suena todo el instrumento: es un idiófono. El bombo tiene un parche que vibra cuando lo golpeo: es un membranófono. En el Norte también se tocan la quena y la zampoña, que se soplan: vibra el aire dentro del tubo, son aerófonos. Y el charango tiene cuerdas que vibran: es un cordófono. Lo sacudo, lo golpeo, lo soplo y lo rasgueo.']],
   ritmo: [['', 'Ahora vamos a aprender el ritmo del huayno con una palabra: vi-cu-ña. Una sílaba larga y dos cortas: VI-cu-ña, VI-cu-ña. ¡Díganlo conmigo!'], ['Muslos en VI, palmas en cu-ña.', 'Ahora con el cuerpo: muslos, palma, palma. ¡Excelente!'], ['Bombo, luego chajchas en el pulso.', 'Y ahora el bombo: PUM pa-ta, PUM pa-ta. Las chajchas marcan el pulso: uno, dos, uno, dos. Cuando el bombo se calla… ¡quietos como vicuñas!']],
   voz: [['Inspira 4, suelta 4.', 'Antes de cantar, preparamos la voz. Olemos una flor… y soplamos la vela despacito: sssss.'], ['Bostezo y llamado.', 'Bostezamos como el cóndor y llamamos a la vicuña del cerro: uuuu… oooo.'], ['Boca de pez.', 'Boca de pez: vi-cu-ñi-ta. ¡Muy bien!'], ['Canta y deja el espacio del eco.', 'Escuchen y repitan: «De las punas bravas vengo como palomita, ¡ay!» … «saltando, brincando como vicuñita, ¡ay!»']],
   cancion: [['Base de bombo y chajchas. Baile: serpentina, saltitos, círculo, caracol, puente.', 'De las punas bravas vengo como palomita, ¡ay! (×2) · Saltando, brincando como vicuñita, ¡ay! (×2) · De las punas bravas qué podrá crecer (×2) · Hierbas del olvido para olvidarte (×2)'], ['Segunda vuelta: invita a los niños a cantar A y B contigo.', '¡Ahora todos conmigo!']],
-  cierre: [['Palo de lluvia lento. Sentados en círculo.', 'Nos sentamos en círculo y respiramos despacito… ¿Qué parte del viaje les gustó más? ¿Qué instrumento sonó como las alas del Alicanto? ¡Las chajchas!'], ['Bombo. Placa 6.', 'En el Norte, cuando termina el carnaval, la gente se despide bailando la cacharpaya. Así que nos despedimos bailando: ¡hasta el próximo carnaval!']],
+  cierre: [['Chajchas muy suaves. Sentados en círculo.', 'Nos sentamos en círculo y respiramos despacito… ¿Qué parte del viaje les gustó más? ¿Qué instrumento sonó como las alas del Alicanto? ¡Las chajchas!'], ['Bombo. Placa 6.', 'En el Norte, cuando termina el carnaval, la gente se despide bailando la cacharpaya. Así que nos despedimos bailando: ¡hasta el próximo carnaval!']],
 };
 (function grabar() {
   const tl = $('#timeline');
@@ -949,9 +986,9 @@ const SCRIPT = {
     ['Ritmo', 'En vivo, sin pista: VI-cu-ña con la voz, el cuerpo y el bombo.'],
     ['Cuento sonoro', 'Con vestuario: cambia de sombrero y alas en la misma toma o en tomas cortas.'],
     ['Inicio', 'Bombo, agenda, mapa y aguayo.'],
-    ['Instrumentos', 'Haz sonar cada uno antes de nombrar su familia.'],
+    ['Instrumentos', 'Haz sonar el bombo y las chajchas antes de nombrar su familia; la quena, la zampoña y el charango los muestras con la placa 3.'],
     ['Voz', 'Juegos de voz y eco de las frases A y B; deja silencios para la respuesta.'],
-    ['Presentación y cierre', 'A cámara, con el palo de lluvia para la vuelta a la calma.'],
+    ['Presentación y cierre', 'A cámara; para la vuelta a la calma, chajchas muy suaves.'],
   ];
   const PRESET = {
     bombo: { on: { melodia: true, acordes: true, bombo: false, chajchas: false, clic: true }, msg: 'Pista para la toma 1: clic, acordes y melodía. Tú pones el bombo.' },
@@ -978,7 +1015,7 @@ const SCRIPT = {
 /* ============ PASO 7: criterios ============ */
 const CRIT = [
   ['1. Zona natural (10)', 'Inicio: mapa (placa 2), desierto, altiplano, pueblos y carnaval.'],
-  ['2. Instrumentos (10)', 'Instrumentos: cada uno suena y se nombra su familia (placa 3).'],
+  ['2. Instrumentos (10)', 'Instrumentos: bombo y chajchas suenan en vivo y los cinco se clasifican por familia (placa 3).'],
   ['3. Narración y dramatización (15)', 'Cuento sonoro con tres voces, vestuario y efectos.'],
   ['4. Canto (15)', 'Juegos de voz y canción completa afinada, respirando entre frases.'],
   ['5. Ritmos (15)', 'VI-cu-ña en voz, cuerpo y bombo; base de bombo y chajchas en la canción.'],
