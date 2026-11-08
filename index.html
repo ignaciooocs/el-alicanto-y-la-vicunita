@@ -801,7 +801,7 @@ function songPlayer(root, opts) {
   const vueltas = h('div', { class: 'seg', role: 'group', 'aria-label': 'Vueltas' }, [['1', 'Estrofa 1 vez'], ['2', 'Estrofa 2 veces (video)']].map(([v, t]) => {
     const b = h('button', { type: 'button', 'aria-pressed': String(+v === ST.vueltas), text: t, onclick: () => { if (Eng.playing) stopAll(); ST.vueltas = +v; saveSong(); F = buildForm(ST.vueltas); syncAll(); } }); b.dataset.v = v; return b;
   }));
-  const toggles = layerToggles(ST, [['melodia', 'Melodía guía'], ['acordes', 'Acordes'], ['bombo', 'Bombo'], ['chajchas', 'Chajchas'], ['clic', 'Clic']], () => { saveSong(); syncAll(); });
+  const toggles = layerToggles(ST, [['melodia', 'Melodía guía'], ['acordes', 'Acordes de apoyo'], ['bombo', 'Bombo'], ['chajchas', 'Chajchas'], ['clic', 'Clic']], () => { saveSong(); syncAll(); });
   const dur = h('span', { class: 'small muted' });
   // bloques: introducción, cada frase, interludio y final
   const same = (a, b) => a && b && a.sec === b.sec && a.line === b.line && a.vuelta === b.vuelta;
@@ -836,7 +836,7 @@ function songPlayer(root, opts) {
     opts.title ? h('div', {}, [h('p', { class: 'kicker', style: 'color:#f5c04a', text: opts.title }), opts.sub ? h('p', { class: 'muted small', text: opts.sub }) : null]) : null,
     h('div', { class: 'row' }, [btn, tempoControl('t-' + root.id, ST, 100, 184, () => { saveSong(); syncAll(); }, 'Meta: ♪ = 160')]),
     h('div', { class: 'row' }, [tono, vueltas, dur]),
-    h('div', {}, [h('p', { class: 'small muted', style: 'margin:0 0 8px', text: 'Sonidos que se escuchan:' }), toggles]),
+    h('div', {}, [h('p', { class: 'small muted', style: 'margin:0 0 8px', text: 'Sonidos que se escuchan:' }), toggles, h('p', { class: 'small muted', style: 'margin:8px 0 0', text: 'Los acordes de apoyo y la melodía guía solo te ayudan a afinar: en el video no los toca nadie. Lo que suena en el video es tu voz con tu bombo y tus chajchas.' })]),
     h('div', { class: 'row nav' }, [ctrl(ICO_PREV, 'Frase anterior', prevBlock), ctrl(ICO_NEXT, 'Frase siguiente', nextBlock), h('span', { class: 'small muted', text: 'Empezar desde:' }), jumps]),
     progBox, status,
   );
@@ -945,7 +945,7 @@ const SCRIPT = {
   const TAKES = [
     ['Base: bombo', 'Con audífonos. La pista te da el clic y la melodía guía. Toca PUM pa-ta durante toda la canción (dos vueltas).', 'bombo'],
     ['Base: chajchas', 'Con audífonos. Escuchas el bombo de la pista y sacudes las chajchas en el pulso.', 'chajchas'],
-    ['Canción y baile', 'Con audífonos. Escuchas la base completa: cantas y bailas las figuras guiando la hilera con el pañuelo.', 'cantar'],
+    ['Canción y baile', 'Con audífonos. Escuchas la base y los acordes de apoyo: cantas y bailas las figuras guiando la hilera con el pañuelo. En el video solo quedan tu voz, tu bombo y tus chajchas.', 'cantar'],
     ['Ritmo', 'En vivo, sin pista: VI-cu-ña con la voz, el cuerpo y el bombo.'],
     ['Cuento sonoro', 'Con vestuario: cambia de sombrero y alas en la misma toma o en tomas cortas.'],
     ['Inicio', 'Bombo, agenda, mapa y aguayo.'],
